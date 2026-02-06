@@ -9,13 +9,32 @@
 
 <body class="bg-gradient-to-br from-pink-50 to-orange-50 font-sans">
 
+<!-- =============================
+   🌟 WELCOME PAGE
+============================= -->
+<div id="welcomePage" class="min-h-screen flex flex-col items-center justify-center text-center p-6">
+  <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" class="w-28 mb-6" />
+
+  <h1 class="text-4xl font-bold mb-3">ยินดีต้อนรับสู่ร้านของเรา</h1>
+  <p class="text-gray-600 mb-6">เสื้อใส่สบาย นิ่มเหมือนเนื้อเป็ด ราคาดี ส่งไว</p>
+
+  <button onclick="enterShop()" class="bg-black text-white px-8 py-3 rounded-2xl text-lg shadow-lg">
+    เข้าสู่ร้านค้า
+  </button>
+</div>
+
+
+<!-- =============================
+   🛒 SHOP PAGE
+============================= -->
+<div id="shopPage" class="hidden">
+
   <!-- HEADER -->
   <header class="bg-white shadow-lg sticky top-0 z-50">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <!-- 🔹 เปลี่ยนโลโก้ตรงนี้ -->
         <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" class="w-10" />
-        <h1 class="text-2xl font-bold">Sun Shop</h1>
+        <h1 class="text-2xl font-bold">Jeezeex</h1>
       </div>
 
       <div class="flex gap-2">
@@ -27,7 +46,6 @@
 
   <!-- SOCIAL BUTTONS -->
   <div class="max-w-6xl mx-auto mt-4 px-4 flex gap-3">
-    <!-- 🔹 แก้ลิงก์ของคุณเอง -->
     <a href="https://line.me" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-xl">Line</a>
     <a href="https://tiktok.com" target="_blank" class="bg-black text-white px-4 py-2 rounded-xl">TikTok</a>
   </div>
@@ -42,9 +60,7 @@
   <div id="cart" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl translate-x-full transition p-5 overflow-y-auto">
     <h2 class="text-lg font-bold mb-4">ตะกร้าสินค้า</h2>
     <div id="cart-items" class="space-y-3"></div>
-
     <p class="mt-4 font-semibold text-lg">รวม: <span id="total">0</span> บาท</p>
-
     <button onclick="checkout()" class="mt-4 w-full bg-green-600 text-white py-2 rounded-xl">ชำระเงิน</button>
   </div>
 
@@ -59,16 +75,27 @@
     <button onclick="addProduct()" class="bg-black text-white w-full py-2 rounded-xl">เพิ่มสินค้า</button>
   </div>
 
+</div>
+
 
 <script>
 
 /* =============================
-   🔹 ระบบสินค้า + LocalStorage
+   🌟 Welcome → Shop
+============================= */
+function enterShop(){
+  document.getElementById('welcomePage').classList.add('hidden');
+  document.getElementById('shopPage').classList.remove('hidden');
+}
+
+
+/* =============================
+   🔹 ระบบสินค้า
 ============================= */
 
 let products = JSON.parse(localStorage.getItem("products")) || [
-  { id: 1, name: "กระเป๋าแฟชั่น", price: 100, img: "https://picsum.photos/300?1" },
-  { id: 2, name: "เสื้อยืด", price: 150, img: "https://picsum.photos/300?2" }
+  { id: 1, name: "เสื้อรอวันที่โฟ้คมีไฟ", price: 100, img: "https://picsum.photos/300?1" },
+  { id: 2, name: "เสื้อยืดหนังเป็ด", price: 150, img: "https://picsum.photos/300?2" }
 ];
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -81,10 +108,10 @@ function saveData(){
 }
 
 function renderProducts(){
-  productList.innerHTML = "";
+  productList.innerHTML="";
 
   products.forEach(p=>{
-    const card = document.createElement("div");
+    const card=document.createElement("div");
     card.className="bg-white rounded-2xl shadow-lg p-4";
 
     card.innerHTML=`
@@ -100,23 +127,23 @@ function renderProducts(){
 
 
 /* =============================
-   🔹 ตะกร้าแบบจริง
+   🔹 ตะกร้า
 ============================= */
 
 function addToCart(id){
-  const item = cart.find(c=>c.id===id);
+  const item=cart.find(c=>c.id===id);
   if(item) item.qty++;
-  else cart.push({...products.find(p=>p.id===id), qty:1});
+  else cart.push({...products.find(p=>p.id===id),qty:1});
   updateCart();
 }
 
 function updateCart(){
-  const items = document.getElementById("cart-items");
-  const totalEl = document.getElementById("total");
-  const countEl = document.getElementById("cart-count");
+  const items=document.getElementById("cart-items");
+  const totalEl=document.getElementById("total");
+  const countEl=document.getElementById("cart-count");
 
   items.innerHTML="";
-  let total=0, count=0;
+  let total=0,count=0;
 
   cart.forEach(c=>{
     total+=c.price*c.qty;
@@ -129,30 +156,26 @@ function updateCart(){
 
   totalEl.textContent=total;
   countEl.textContent=count;
-
   saveData();
 }
 
 
 /* =============================
-   🔹 PromptPay QR
+   🔹 PromptPay
 ============================= */
 
 function checkout(){
   const total=document.getElementById("total").textContent;
-
   if(total==0) return alert("ยังไม่มีสินค้า");
 
-  const phone="0812345678"; // 🔹 ใส่เบอร์คุณ
-
+  const phone="087ฉันรักโฟ้ค"; // เปลี่ยนเบอร์
   const url=`https://promptpay.io/${phone}/${total}.png`;
-
   window.open(url);
 }
 
 
 /* =============================
-   🔹 Admin เพิ่มสินค้า
+   🔹 Admin
 ============================= */
 
 function addProduct(){
@@ -161,15 +184,10 @@ function addProduct(){
   const img=document.getElementById("img").value;
 
   products.push({id:Date.now(),name,price,img});
-
   saveData();
   renderProducts();
 }
 
-
-/* =============================
-   🔹 UI Toggle
-============================= */
 
 function toggleCart(){
   document.getElementById("cart").classList.toggle("translate-x-full");

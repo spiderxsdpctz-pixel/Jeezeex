@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ร้านค้าของฉัน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-pink-50 to-orange-50 font-sans">
+
+  <!-- HEADER -->
+  <header class="bg-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <!-- 🔹 เปลี่ยนโลโก้ตรงนี้ -->
+        <img src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png" class="w-10" />
+        <h1 class="text-2xl font-bold">Sun Shop</h1>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="toggleAdmin()" class="bg-gray-200 px-3 py-2 rounded-xl">Admin</button>
+        <button onclick="toggleCart()" class="bg-black text-white px-4 py-2 rounded-2xl">🛒 (<span id="cart-count">0</span>)</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- SOCIAL BUTTONS -->
+  <div class="max-w-6xl mx-auto mt-4 px-4 flex gap-3">
+    <!-- 🔹 แก้ลิงก์ของคุณเอง -->
+    <a href="https://line.me" target="_blank" class="bg-green-500 text-white px-4 py-2 rounded-xl">Line</a>
+    <a href="https://tiktok.com" target="_blank" class="bg-black text-white px-4 py-2 rounded-xl">TikTok</a>
+  </div>
+
+  <!-- PRODUCT LIST -->
+  <main class="max-w-6xl mx-auto p-6">
+    <h2 class="text-xl font-semibold mb-4">สินค้า</h2>
+    <div id="product-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+  </main>
+
+  <!-- CART -->
+  <div id="cart" class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl translate-x-full transition p-5 overflow-y-auto">
+    <h2 class="text-lg font-bold mb-4">ตะกร้าสินค้า</h2>
+    <div id="cart-items" class="space-y-3"></div>
+
+    <p class="mt-4 font-semibold text-lg">รวม: <span id="total">0</span> บาท</p>
+
+    <button onclick="checkout()" class="mt-4 w-full bg-green-600 text-white py-2 rounded-xl">ชำระเงิน</button>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="admin" class="fixed left-0 top-0 h-full w-80 bg-white shadow-2xl -translate-x-full transition p-5">
+    <h2 class="font-bold mb-3">เพิ่มสินค้า (Admin)</h2>
+
+    <input id="name" placeholder="ชื่อสินค้า" class="border p-2 w-full mb-2 rounded" />
+    <input id="price" placeholder="ราคา" type="number" class="border p-2 w-full mb-2 rounded" />
+    <input id="img" placeholder="ลิงก์รูปภาพ" class="border p-2 w-full mb-2 rounded" />
+
+    <button onclick="addProduct()" class="bg-black text-white w-full py-2 rounded-xl">เพิ่มสินค้า</button>
+  </div>
+
+
+<script>
+
+/* =============================
+   🔹 ระบบสินค้า + LocalStorage
+============================= */
+
+let products = JSON.parse(localStorage.getItem("products")) || [
+  { id: 1, name: "กระเป๋าแฟชั่น", price: 100, img: "https://picsum.photos/300?1" },
+  { id: 2, name: "เสื้อยืด", price: 150, img: "https://picsum.photos/300?2" }
+];
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+const productList = document.getElementById("product-list");
+
+function saveData(){
+  localStorage.setItem("products", JSON.stringify(products));
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function renderProducts(){
+  productList.innerHTML = "";
+
+  products.forEach(p=>{
+    const card = document.createElement("div");
+    card.className="bg-white rounded-2xl shadow-lg p-4";
+
+    card.innerHTML=`
+      <img src="${p.img}" class="rounded-xl mb-3 w-full h-48 object-cover" />
+      <h3 class="font-semibold text-lg">${p.name}</h3>
+      <p class="text-gray-600 mb-3">${p.price} บาท</p>
+      <button onclick="addToCart(${p.id})" class="bg-black text-white w-full py-2 rounded-xl">เพิ่มลงตะกร้า</button>
+    `;
+
+    productList.appendChild(card);
+  })
+}
+
+
+/* =============================
+   🔹 ตะกร้าแบบจริง
+============================= */
+
+function addToCart(id){
+  const item = cart.find(c=>c.id===id);
+  if(item) item.qty++;
+  else cart.push({...products.find(p=>p.id===id), qty:1});
+  updateCart();
+}
+
+function updateCart(){
+  const items = document.getElementById("cart-items");
+  const totalEl = document.getElementById("total");
+  const countEl = document.getElementById("cart-count");
+
+  items.innerHTML="";
+  let total=0, count=0;
+
+  cart.forEach(c=>{
+    total+=c.price*c.qty;
+    count+=c.qty;
+
+    const div=document.createElement("div");
+    div.innerHTML=`${c.name} x${c.qty} - ${c.price*c.qty} บาท`;
+    items.appendChild(div);
+  })
+
+  totalEl.textContent=total;
+  countEl.textContent=count;
+
+  saveData();
+}
+
+
+/* =============================
+   🔹 PromptPay QR
+============================= */
+
+function checkout(){
+  const total=document.getElementById("total").textContent;
+
+  if(total==0) return alert("ยังไม่มีสินค้า");
+
+  const phone="0812345678"; // 🔹 ใส่เบอร์คุณ
+
+  const url=`https://promptpay.io/${phone}/${total}.png`;
+
+  window.open(url);
+}
+
+
+/* =============================
+   🔹 Admin เพิ่มสินค้า
+============================= */
+
+function addProduct(){
+  const name=document.getElementById("name").value;
+  const price=Number(document.getElementById("price").value);
+  const img=document.getElementById("img").value;
+
+  products.push({id:Date.now(),name,price,img});
+
+  saveData();
+  renderProducts();
+}
+
+
+/* =============================
+   🔹 UI Toggle
+============================= */
+
+function toggleCart(){
+  document.getElementById("cart").classList.toggle("translate-x-full");
+}
+
+function toggleAdmin(){
+  document.getElementById("admin").classList.toggle("-translate-x-full");
+}
+
+
+renderProducts();
+updateCart();
+
+</script>
+
+</body>
+</html>
